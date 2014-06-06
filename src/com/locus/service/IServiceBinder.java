@@ -1,15 +1,18 @@
 package com.locus.service;
 
-import android.app.Service;
+import java.util.ArrayList;
 
+import com.baidu.location.BDLocation;
+import com.locus.bean.Dot;
+
+import android.app.Service;
 
 public interface IServiceBinder {
 	public interface IBinderUIHandler {
-		public void handleResult();
+		public void refreshViews(BDLocation location, ArrayList<Dot> dots, Dot d);
 
 		public IServiceBinder getBinder();
-		 
-		public void onConnected();
+
 	}
 
 	// 设这调用的Activity

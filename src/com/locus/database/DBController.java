@@ -1,16 +1,13 @@
 package com.locus.database;
 
 import java.util.ArrayList;
-
 import com.locus.LocusApplication;
 import com.locus.bean.LocationInfo;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.view.Surface;
 
 public class DBController {
 

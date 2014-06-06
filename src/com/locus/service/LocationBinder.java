@@ -1,9 +1,6 @@
 package com.locus.service;
 
 import java.lang.ref.WeakReference;
-
-import com.locus.service.IServiceBinder.IBinderUIHandler;
-
 import android.os.Binder;
 
 public class LocationBinder extends Binder implements IServiceBinder {

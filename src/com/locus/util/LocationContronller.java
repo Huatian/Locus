@@ -1,45 +1,28 @@
 package com.locus.util;
 
 import java.util.ArrayList;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.util.Log;
-import android.widget.TextView;
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.location.LocationClientOption.LocationMode;
-import com.baidu.mapapi.map.Geometry;
-import com.baidu.mapapi.map.Graphic;
-import com.baidu.mapapi.map.GraphicsOverlay;
-import com.baidu.mapapi.map.LocationData;
-import com.baidu.mapapi.map.MapView;
-import com.baidu.mapapi.map.MyLocationOverlay;
-import com.baidu.mapapi.map.Symbol;
-import com.baidu.platform.comapi.basestruct.GeoPoint;
 import com.google.gson.Gson;
+import com.locus.LocationActivity;
 import com.locus.LocusApplication;
 import com.locus.bean.Dot;
 import com.locus.bean.LocationInfo;
 import com.locus.database.DBController;
+import com.locus.service.LocationBinder;
 import com.locus.util.Supplementer.OnSupplementedListener;
 
 public class LocationContronller {
 
-	private MapView mMapView = null;
-	private TextView mRadius = null;
 	/**
 	 * 百度地图定位客户端
 	 */
 	private LocationClient mLocClient;
-	private GraphicsOverlay mGraphicsOverlay = null;
-	private MyLocationOverlay myLocationOverlay = null;
-	private LocationData mLocData = new LocationData();
+	private LocationBinder mBinder;
 
 	private LocationInfo mLocationInfo;
 	private ArrayList<Dot> mDots = null;
@@ -49,9 +32,8 @@ public class LocationContronller {
 	private Supplementer mSupplementer;
 	private boolean isInCacheState = false;
 
-	public LocationContronller(MapView mapView, TextView tv) {
-		this.mMapView = mapView;
-		this.mRadius = tv;
+	public LocationContronller(LocationBinder binder) {
+		mBinder = binder;
 		mLocationInfo = new LocationInfo();
 		mDots = new ArrayList<Dot>();
 		mCacheDots = new ArrayList<Dot>();
@@ -61,11 +43,7 @@ public class LocationContronller {
 		MyLocationListener mMyLocationListener = new MyLocationListener();
 		mLocClient.registerLocationListener(mMyLocationListener);
 
-		mGraphicsOverlay = new GraphicsOverlay(mMapView);
-		myLocationOverlay = new MyLocationOverlay(mMapView);
-		myLocationOverlay.enableCompass();
-		mMapView.getOverlays().add(mGraphicsOverlay);
-		mMapView.getOverlays().add(myLocationOverlay);
+		
 	}
 	
 	public void startLocation(){
@@ -80,6 +58,10 @@ public class LocationContronller {
 		}
 		else
 			Log.d("LocSDK3", "locClient is null or not started");
+		
+		if(mSupplementer != null){
+			mSupplementer.destroy();
+		}
 	}
 
 	// 设置Option
@@ -118,8 +100,7 @@ public class LocationContronller {
 			if (location.getLatitude() != 4.9E-324) {
 				Dot d = new Dot(location.getLatitude(), location.getLongitude(),location.getSpeed());
 				Log.i("location", "Direction:" + location.getDirection() + ",Speed:" + location.getSpeed());
-				mRadius.setText("当前定位精度：" + location.getRadius() + ";当前行程：" + DistanCounter.distance + ";当前速度："+ location
-						.getSpeed());
+				
 				if(mPreDot != null){
 					
 					if(isInCacheState){//补偿状态中，将点放入缓存集合中
@@ -149,14 +130,7 @@ public class LocationContronller {
 				Log.i("dot", "Latitude:" + d.mLatitude + ";Longitude:"
 						+ d.mLongitude);
 
-				// mMapView.removeAllViews();
-				refreshLocationOverlays(d);
-				if ((System.currentTimeMillis() - LocusApplication.time_begin) > (15 * 60 * 1000)) {
-					stopLocation();
-					setMsgDialog(LocusApplication.instance());
-					return;
-				}
-				refreshGraphicsOverlay(mDots, d);
+				((LocationActivity)mBinder.getHandler()).refreshViews(location, mDots, d);
 				mPreDot = d;
 			} else {
 				// do something
@@ -190,93 +164,7 @@ public class LocationContronller {
 		mCacheDots.add(d);
 	}
 
-	/**
-	 * 刷新绘制图层
-	 */
-	public void refreshGraphicsOverlay(ArrayList<Dot> dots, Dot d) {
-		if(dots.size() == 0){
-			return;
-		}
-		// 添加折线
-		mGraphicsOverlay.setData(Common.drawLine(dots));
-
-		// 添加点
-		// graphicsOverlay.setData(drawPoint(d));
-
-		// 执行地图刷新使生效
-		mMapView.refresh();
-	}
-
-	/**
-	 * 绘制单点，该点状态不随地图状态变化而变化
-	 * 
-	 * @return 点对象
-	 */
-	public Graphic drawPoint(Dot d) {
-		double mLat = d.mLatitude;
-		double mLon = d.mLongitude;
-		int lat = (int) (mLat * 1E6);
-		int lon = (int) (mLon * 1E6);
-		GeoPoint pt1 = new GeoPoint(lat, lon);
-
-		// 构建点
-		Geometry pointGeometry = new Geometry();
-		// 设置坐标
-		pointGeometry.setPoint(pt1, 10);
-		// 设定样式
-		Symbol pointSymbol = new Symbol();
-		Symbol.Color pointColor = pointSymbol.new Color();
-		pointColor.red = 0;
-		pointColor.green = 126;
-		pointColor.blue = 255;
-		pointColor.alpha = 255;
-		pointSymbol.setPointSymbol(pointColor);
-		// 生成Graphic对象
-		Graphic pointGraphic = new Graphic(pointGeometry, pointSymbol);
-		return pointGraphic;
-	}
-
-	/**
-	 * 绘制定位图层
-	 * 
-	 * @param d
-	 */
-	public void refreshLocationOverlays(Dot d) {
-
-		mLocData.latitude = d.mLatitude;
-		mLocData.longitude = d.mLongitude;
-		mLocData.direction = 2.0f;
-		myLocationOverlay.setData(mLocData);
-
-		mMapView.refresh();
-		mMapView.getController().animateTo(
-				new GeoPoint((int) (mLocData.latitude * 1e6),
-						(int) (mLocData.longitude * 1e6)));
-	}
-	
-	public Dialog setMsgDialog(final Context context) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(context);
-		builder.setTitle("提示");
-		builder.setPositiveButton("确定", new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				LocusApplication.time_begin = System.currentTimeMillis();
-				mLocationInfo.reSet();
-				startLocation();
-			}
-
-		});
-		builder.setNegativeButton("不，返回主界面", new OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				((Activity) context).finish();
-			}
-
-		});
-		builder.setMessage("您在十五分钟内的路线已保存，您还仍需定位吗？");
-		AlertDialog dialog = builder.create();
-		return dialog;
+	public void reSetLocationinfo(){
+		mLocationInfo.reSet();
 	}
 }

@@ -93,6 +93,8 @@
         <activity android:name="com.locus.HistoryActivity"></activity>
         <activity android:name="com.locus.PathShowActivity"></activity>
         
+        <service 
+            android:name="com.locus.service.LocationService"></service>
 
         <service
             android:name="com.baidu.location.f"

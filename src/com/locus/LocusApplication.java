@@ -1,14 +1,10 @@
 package com.locus;
 
-import java.util.ArrayList;
-
 import com.baidu.location.LocationClient;
 import com.baidu.mapapi.BMapManager;
 import com.baidu.mapapi.MKGeneralListener;
 import com.baidu.mapapi.map.MKEvent;
-import com.locus.bean.Dot;
 import com.locus.bean.LocationInfo;
-
 import android.app.Application;
 import android.content.Context;
 import android.widget.Toast;
