@@ -1,28 +1,27 @@
 package com.locus.service;
 
+import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-public class LocationService extends BaseService {
-
-	private LocationBinder mBinder;
+public class BaseService extends Service {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-
-		return mBinder;
-
+		return null;
 	}
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
 	}
+
+	
 
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		return START_STICKY;
 	}
-
 
 }

@@ -75,7 +75,7 @@
             android:value="5bb9b74e5b7333f0eaafd201a49a9cf8" />
 
         <activity
-            android:name="com.locus.MainActivity"
+            android:name="com.locus.LocationActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/app_name"
             android:screenOrientation="sensor" >
@@ -91,6 +91,8 @@
         </activity>
         
         <activity android:name="com.locus.HistoryActivity"></activity>
+        <activity android:name="com.locus.PathShowActivity"></activity>
+        
 
         <service
             android:name="com.baidu.location.f"

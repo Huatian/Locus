@@ -7,6 +7,7 @@ import com.baidu.mapapi.BMapManager;
 import com.baidu.mapapi.MKGeneralListener;
 import com.baidu.mapapi.map.MKEvent;
 import com.locus.bean.Dot;
+import com.locus.bean.LocationInfo;
 
 import android.app.Application;
 import android.content.Context;
@@ -24,16 +25,15 @@ public class LocusApplication extends Application {
     public static final String TAG = "demo";
     public static final int DB_VERSION = 1;
     
-    public static ArrayList<Dot> currentPath;
+    public static LocationInfo currentLocationInfo;
     
 	@Override
 	public void onCreate() {
 		// TODO Auto-generated method stub
 		super.onCreate();
 		instance = this;
-		time_begin = System.currentTimeMillis();
 		initEngineManager(this);
-		mLocationClient = new LocationClient(this);
+		mLocationClient = new LocationClient(getApplicationContext());
 	}
 	
 	public void initEngineManager(Context context) {

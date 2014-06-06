@@ -14,7 +14,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE IF NOT EXISTS " + "userinfo" + "(" + "_id" + " integer primary key," + "path" + " varchar"  + ")");
+		/*values.put("timeStart", info.mTimeStart);
+		values.put("timeEnd", info.mTimeEnd);
+		values.put("duration", info.mDuration);
+		values.put("distance", info.mDistance);
+		values.put("pathString", info.mPathString);*/
+		db.execSQL("CREATE TABLE IF NOT EXISTS " + "userinfo" + "(" + "_id" + " integer primary key," 
+				+ "timestart"+ " integer," + "timeend"+ " integer,"
+				+ "duration"+ " integer," + "distance" + " double,"
+				+ "path" + " varchar"  + ");");
 	}
 
 	@Override

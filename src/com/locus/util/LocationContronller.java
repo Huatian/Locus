@@ -1,6 +1,12 @@
 package com.locus.util;
 
 import java.util.ArrayList;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.util.Log;
 import android.widget.TextView;
 import com.baidu.location.BDLocation;
@@ -19,6 +25,7 @@ import com.baidu.platform.comapi.basestruct.GeoPoint;
 import com.google.gson.Gson;
 import com.locus.LocusApplication;
 import com.locus.bean.Dot;
+import com.locus.bean.LocationInfo;
 import com.locus.database.DBController;
 import com.locus.util.Supplementer.OnSupplementedListener;
 
@@ -34,6 +41,7 @@ public class LocationContronller {
 	private MyLocationOverlay myLocationOverlay = null;
 	private LocationData mLocData = new LocationData();
 
+	private LocationInfo mLocationInfo;
 	private ArrayList<Dot> mDots = null;
 	private Dot mPreDot = null;
 	private ArrayList<Dot> mCacheDots = null;
@@ -44,6 +52,7 @@ public class LocationContronller {
 	public LocationContronller(MapView mapView, TextView tv) {
 		this.mMapView = mapView;
 		this.mRadius = tv;
+		mLocationInfo = new LocationInfo();
 		mDots = new ArrayList<Dot>();
 		mCacheDots = new ArrayList<Dot>();
 		
@@ -61,15 +70,14 @@ public class LocationContronller {
 	
 	public void startLocation(){
 		mLocClient.start();
-		if (mLocClient != null && mLocClient.isStarted())
-			mLocClient.requestLocation();
-		else
-			Log.d("LocSDK3", "locClient is null or not started");
+		LocusApplication.time_begin = System.currentTimeMillis();
 	}
 	
 	public void stopLocation(){
-		if (mLocClient != null && mLocClient.isStarted())
+		if (mLocClient != null && mLocClient.isStarted()){
 			mLocClient.stop();
+			savePath();
+		}
 		else
 			Log.d("LocSDK3", "locClient is null or not started");
 	}
@@ -90,11 +98,17 @@ public class LocationContronller {
 		}
 	}
 	
-	public void savePath(){
+	private void savePath(){
+		mLocationInfo.mTimeStart = LocusApplication.time_begin;
+		mLocationInfo.mTimeEnd = System.currentTimeMillis();
+		mLocationInfo.mDuration = mLocationInfo.mTimeEnd - mLocationInfo.mTimeStart;
+		mLocationInfo.mDistance = DistanCounter.distance;
+		
 		Gson gson = new Gson();
 		String s = gson.toJson(mDots);
+		mLocationInfo.mPathString = s;
 		DBController db = new DBController();
-		db.insert(LocusApplication.instance(), s);
+		db.insert(LocusApplication.instance(), mLocationInfo);
 	}
 
 	public class MyLocationListener implements BDLocationListener {
@@ -138,8 +152,8 @@ public class LocationContronller {
 				// mMapView.removeAllViews();
 				refreshLocationOverlays(d);
 				if ((System.currentTimeMillis() - LocusApplication.time_begin) > (15 * 60 * 1000)) {
-					mLocClient.stop();
-					savePath();
+					stopLocation();
+					setMsgDialog(LocusApplication.instance());
 					return;
 				}
 				refreshGraphicsOverlay(mDots, d);
@@ -238,5 +252,31 @@ public class LocationContronller {
 		mMapView.getController().animateTo(
 				new GeoPoint((int) (mLocData.latitude * 1e6),
 						(int) (mLocData.longitude * 1e6)));
+	}
+	
+	public Dialog setMsgDialog(final Context context) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle("提示");
+		builder.setPositiveButton("确定", new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				LocusApplication.time_begin = System.currentTimeMillis();
+				mLocationInfo.reSet();
+				startLocation();
+			}
+
+		});
+		builder.setNegativeButton("不，返回主界面", new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				((Activity) context).finish();
+			}
+
+		});
+		builder.setMessage("您在十五分钟内的路线已保存，您还仍需定位吗？");
+		AlertDialog dialog = builder.create();
+		return dialog;
 	}
 }

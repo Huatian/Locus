@@ -1,111 +1,42 @@
 package com.locus;
 
-import java.util.ArrayList;
-
 import com.baidu.mapapi.map.MKMapViewListener;
 import com.baidu.mapapi.map.MapController;
 import com.baidu.mapapi.map.MapPoi;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.platform.comapi.basestruct.GeoPoint;
-import com.locus.bean.Dot;
-import com.locus.util.LineDrawer;
-import com.locus.util.LocationContronller;
-import com.locus.util.Supplementer;
 import com.locus1.R;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MapActivity extends Activity {
 	/**
 	 * MapView 是地图主控件
 	 */
-	private MapView mMapView = null;
+	protected MapView mMapView = null;
 	/**
 	 * 用MapController完成地图控制
 	 */
-	private MapController mMapController = null;
+	protected MapController mMapController = null;
 	/**
 	 * MKMapViewListener 用于处理地图事件回调
 	 */
-	private MKMapViewListener mMapListener = null;
+	protected MKMapViewListener mMapListener = null;
 
-	private LocationContronller mLocContronller;
-
-	Supplementer supplementer;
-	
-	private TextView mTV_Radius;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
 		initMapview();
-		mTV_Radius = (TextView) findViewById(R.id.tv_radius);
-
-		int p = getIntent().getBundleExtra("bundle").getInt("position");
-
-		switch (p) {
-		case 0:// 多个点划线
-			onPosition0();
-			break;
-		case 1://步行路线
-			onPosition1();
-			break;
-		case 2://定位路线
-			onPosition2();
-			break;
-		default:
-			break;
-		}
-
-	}
-
-	private void onPosition0() {
-		ArrayList<Dot> dots = new ArrayList<Dot>();
-		if(LocusApplication.currentPath == null){
-			Double latitude = 39.912169;
-			Double longitude = 116.459232;
-			
-			for (int i = 0; i < 3600; i++) {
-				Double tempLatitude = latitude + 0.0001f;
-				Double tempLongitude = longitude + 0.0001f;
-				Dot d = new Dot(tempLatitude,tempLongitude,0.0f);
-				dots.add(d);
-				latitude = tempLatitude;
-				longitude = tempLongitude;
-				Log.i("dot", "" + latitude + ";" + longitude);
-			}
-		}else{
-			dots = LocusApplication.currentPath;
-		}
-		
-		
-		LineDrawer lineDrawer = new LineDrawer(mMapView);
-		lineDrawer.drawLine(dots);
-	}
-
-	private void onPosition1() {
-		Log.i("jd", "步行路线");
-		ArrayList<Dot> dots = new ArrayList<Dot>();
-		GeoPoint stPoint = new GeoPoint((int)(39.91226899999747 *1E6),(int)(116.45933199999747 *1E6));
-		GeoPoint enPoint = new GeoPoint((int)(40.272168990905634 *1E6), (int)(116.81923199090564 *1E6));
-		supplementer = new Supplementer(dots);
-		supplementer.startPlan(stPoint, enPoint);
-	}
-
-	private void onPosition2() {
-		mLocContronller = new LocationContronller(mMapView, mTV_Radius);
-		mLocContronller.startLocation();
 	}
 
 	private void initMapview() {
-		
+
 		/**
 		 * 由于MapView在setContentView()中初始化,所以它需要在BMapManager初始化之后
 		 */
@@ -146,8 +77,7 @@ public class MainActivity extends Activity {
 
 		initMapViewListener();
 
-		mMapView.regMapViewListener(LocusApplication.mapManager,
-				mMapListener);
+		mMapView.regMapViewListener(LocusApplication.mapManager, mMapListener);
 	}
 
 	private void initMapViewListener() {
@@ -172,8 +102,7 @@ public class MainActivity extends Activity {
 				String title = "";
 				if (mapPoiInfo != null) {
 					title = mapPoiInfo.strText;
-					Toast.makeText(MainActivity.this, title, Toast.LENGTH_SHORT)
-							.show();
+					Toast.makeText(MapActivity.this, title, Toast.LENGTH_SHORT).show();
 					mMapController.animateTo(mapPoiInfo.geoPt);
 				}
 			}
@@ -197,12 +126,11 @@ public class MainActivity extends Activity {
 			 */
 			@Override
 			public void onMapLoadFinish() {
-				Toast.makeText(MainActivity.this, "地图加载完成", Toast.LENGTH_SHORT)
-						.show();
+				Toast.makeText(MapActivity.this, "地图加载完成", Toast.LENGTH_SHORT).show();
 			}
 		};
 	}
-
+	
 	@Override
 	protected void onPause() {
 		/**
@@ -220,25 +148,16 @@ public class MainActivity extends Activity {
 		mMapView.onResume();
 		super.onResume();
 	}
-
+	
 	@Override
 	protected void onDestroy() {
-		if(supplementer != null){
-			supplementer.destroy();
-		}
-		
-		if(mLocContronller != null){
-			mLocContronller.stopLocation();
-			mLocContronller.savePath();
-		}
-		
 		/**
 		 * MapView的生命周期与Activity同步，当activity销毁时需调用MapView.destroy()
 		 */
 		mMapView.destroy();
 		super.onDestroy();
 	}
-
+	
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -257,5 +176,4 @@ public class MainActivity extends Activity {
 		super.onConfigurationChanged(newConfig);
 		Log.i("Locus", "on config changed !!!");
 	}
-
 }

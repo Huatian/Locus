@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity" >
+    tools:context=".LocationActivity" >
 
     <com.baidu.mapapi.map.MapView
         android:id="@+id/bmapView"
@@ -11,10 +11,10 @@
         android:clickable="true" />
     
     <TextView 
-        android:id="@+id/tv_radius"
+        android:id="@+id/tv_location_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:background="@color/semitransparent"/>
-
+	
 </RelativeLayout>

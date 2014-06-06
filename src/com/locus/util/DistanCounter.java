@@ -2,7 +2,11 @@ package com.locus.util;
 
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.locus.bean.Dot;
-
+/**
+ * 行程计算类
+ * @author wanghuatian1987@gmil.com
+ *
+ */
 public class DistanCounter {
 	public static double distance = 0;
 	
